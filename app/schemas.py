@@ -35,6 +35,12 @@ class TenantCreate(BaseModel):
         if v is None:
             return v
         v = v.strip().lower()
+        if not v:
+            # Campo vacío = usar el que se deriva del dominio.
+            return None
+        # Tolerante: si pegaron un dominio (ej. "pepe.com"), tomamos el primer label,
+        # que es justo lo que Odoo selecciona con dbfilter = ^%d$.
+        v = v.split(".")[0]
         if not LABEL_RE.match(v):
             raise ValueError(f"Nombre de base inválido: {v}")
         return v
