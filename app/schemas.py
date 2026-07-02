@@ -8,8 +8,9 @@ DOMAIN_RE = re.compile(r"^(?=.{1,253}$)([a-z0-9](-*[a-z0-9])*\.)+[a-z]{2,63}$")
 
 
 class TenantCreate(BaseModel):
-    # Master Password de Odoo (admin_passwd de odoo.conf). Se ingresa en cada alta.
-    master_password: str
+    # Master Password de Odoo (admin_passwd de odoo.conf). Se ingresa en cada alta
+    # con DB_BACKEND=odoo; con DB_BACKEND=postgres no se usa (queda vacía).
+    master_password: str = ""
     # Dominio completo del cliente, ej: "cliente1.midominio.com"
     domain: str
     # Nombre de la base en Odoo. Si se omite, se usa el dominio completo.
@@ -51,13 +52,6 @@ class TenantCreate(BaseModel):
     def _valid_pwd(cls, v: str) -> str:
         if len(v) < 8:
             raise ValueError("La contraseña de admin debe tener al menos 8 caracteres")
-        return v
-
-    @field_validator("master_password")
-    @classmethod
-    def _valid_master(cls, v: str) -> str:
-        if not v:
-            raise ValueError("La Master Password de Odoo es obligatoria")
         return v
 
     def resolved_db_name(self) -> str:

@@ -32,7 +32,8 @@ def index(request: Request, msg: str | None = None):
         request,
         "index.html",
         {"databases": databases, "error": error, "msg": msg,
-         "dry_run": not settings.apply_system_changes},
+         "dry_run": not settings.apply_system_changes,
+         "postgres_backend": settings.db_backend == "postgres"},
     )
 
 
@@ -41,7 +42,9 @@ def new_form(request: Request):
     return templates.TemplateResponse(
         request,
         "new.html",
-        {"base_domain": settings.base_domain, "dry_run": not settings.apply_system_changes},
+        {"base_domain": settings.base_domain,
+         "dry_run": not settings.apply_system_changes,
+         "postgres_backend": settings.db_backend == "postgres"},
     )
 
 
@@ -69,7 +72,7 @@ def api_create_tenant(payload: TenantCreate):
 @app.post("/provision", response_class=HTMLResponse)
 def form_provision(
     request: Request,
-    master_password: str = Form(...),
+    master_password: str = Form(""),
     domain: str = Form(...),
     db_name: str = Form(""),
     admin_login: str = Form("admin"),
@@ -98,7 +101,8 @@ def form_provision(
             request,
             "new.html",
             {"base_domain": settings.base_domain,
-             "dry_run": not settings.apply_system_changes, "error": str(exc)},
+             "dry_run": not settings.apply_system_changes,
+             "postgres_backend": settings.db_backend == "postgres", "error": str(exc)},
             status_code=422,
         )
 
@@ -115,7 +119,7 @@ def form_provision(
 def form_delete(
     request: Request,
     db_name: str = Form(...),
-    master_password: str = Form(...),
+    master_password: str = Form(""),
 ):
     result = deprovision(db_name, master_password)
     return templates.TemplateResponse(
