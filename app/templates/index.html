@@ -47,8 +47,8 @@
       <small>El primer label (ej. <b>cliente1</b>) será el nombre de la base salvo que lo cambies abajo.</small>
 
       <label>Nombre de la base (opcional)</label>
-      <input type="text" name="db_name" placeholder="se deriva del dominio (ej. pepe)" pattern="[a-z0-9][a-z0-9-]*" title="Una sola palabra, sin puntos ni espacios">
-      <small>Dejalo <b>vacío</b> para que se derive del dominio. Si lo completás, va sin puntos ni <code>.com</code> (ej. <b>pepe</b>).</small>
+      <input type="text" name="db_name" placeholder="igual al dominio si lo dejás vacío">
+      <small>Si lo dejás <b>vacío</b>, la base se llama igual que el dominio (ej. <b>www.pepep.com</b>). Se autocompleta al salir del campo Dominio.</small>
 
       <div class="row">
         <div>
@@ -92,5 +92,19 @@
       <button type="submit">Crear cliente</button>
     </form>
   </div>
+
+  <script>
+    // Al salir del campo Dominio, copiar su valor al de la base si está vacío.
+    (function () {
+      var dom = document.querySelector('input[name="domain"]');
+      var db = document.querySelector('input[name="db_name"]');
+      if (!dom || !db) return;
+      dom.addEventListener('blur', function () {
+        if (!db.value.trim()) {
+          db.value = dom.value.trim().toLowerCase();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

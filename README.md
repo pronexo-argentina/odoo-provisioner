@@ -7,19 +7,20 @@ base por cliente**:
 2. **Crea la zona de nginx** (reverse proxy del subdominio → Odoo local, con websocket).
 3. **Emite el SSL** con `certbot --nginx` (Let's Encrypt).
 
-nginx enruta por subdominio y Odoo elige la base automáticamente con `dbfilter = ^%d$`
-(el primer label del host coincide con el nombre de la base).
+nginx enruta por dominio y Odoo elige la base automáticamente con `dbfilter = ^%h$`
+(el host completo coincide con el nombre de la base).
 
 ---
 
 ## Cómo funciona el ruteo
 
 ```
-cliente1.midominio.com ──nginx(:80/:443)──▶ Odoo :1969 ──dbfilter ^%d$──▶ base "cliente1"
-cliente2.midominio.com ──nginx(:80/:443)──▶ Odoo :1969 ──dbfilter ^%d$──▶ base "cliente2"
+www.pepep.com  ──nginx(:80/:443)──▶ Odoo :1969 ──dbfilter ^%h$──▶ base "www.pepep.com"
+cliente2.com   ──nginx(:80/:443)──▶ Odoo :1969 ──dbfilter ^%h$──▶ base "cliente2.com"
 ```
 
-Cada cliente es **un subdominio + una base**. Un solo proceso Odoo los sirve a todos.
+Cada cliente es **un dominio + una base con el mismo nombre**. Un solo proceso Odoo los sirve a todos.
+Si dejás el nombre de base vacío en el formulario, se usa el dominio completo.
 
 ---
 
@@ -32,7 +33,7 @@ Se asume Ubuntu/Debian con Odoo 19, nginx y certbot ya instalados.
 ```ini
 admin_passwd = <PONÉ_UN_MASTER_PASSWORD_FUERTE>   ; debe coincidir con ODOO_MASTER_PASSWORD
 list_db = True                                     ; necesario para crear/listar bases por API
-dbfilter = ^%d$                                    ; cada subdominio → su base
+dbfilter = ^%h$                                    ; cada dominio → su base (mismo nombre)
 proxy_mode = True                                  ; confiar en X-Forwarded-* de nginx
 ```
 

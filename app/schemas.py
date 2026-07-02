@@ -36,12 +36,11 @@ class TenantCreate(BaseModel):
             return v
         v = v.strip().lower()
         if not v:
-            # Campo vacío = usar el que se deriva del dominio.
+            # Campo vacío = se deriva del dominio (ver resolved_db_name).
             return None
-        # Tolerante: si pegaron un dominio (ej. "pepe.com"), tomamos el primer label,
-        # que es justo lo que Odoo selecciona con dbfilter = ^%d$.
-        v = v.split(".")[0]
-        if not LABEL_RE.match(v):
+        # Se acepta un dominio completo (con puntos, ej. "www.pepep.com") o un
+        # label simple (ej. "pepe"). Ambos son nombres de base válidos en Odoo.
+        if not (DOMAIN_RE.match(v) or LABEL_RE.match(v)):
             raise ValueError(f"Nombre de base inválido: {v}")
         return v
 
@@ -53,14 +52,11 @@ class TenantCreate(BaseModel):
         return v
 
     def resolved_db_name(self) -> str:
-        """Nombre de base efectivo: el explícito o el primer label del dominio.
+        """Nombre de base efectivo: el explícito, o el dominio completo si se dejó vacío.
 
-        Con dbfilter = ^%d$ en odoo.conf, Odoo hace coincidir el primer label del host
-        con el nombre de la base, así que por defecto db == primer label."""
-        if self.db_name:
-            return self.db_name
-        label = self.domain.split(".")[0]
-        return label
+        Con dbfilter = ^%h$ en odoo.conf, Odoo hace coincidir el host completo con el
+        nombre de la base, así que por defecto db == dominio (ej. www.pepep.com)."""
+        return self.db_name or self.domain
 
 
 class Step(BaseModel):
