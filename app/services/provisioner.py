@@ -20,6 +20,7 @@ def provision(payload: TenantCreate) -> TenantResult:
             db_name=db_name,
             admin_login=payload.admin_login,
             admin_password=payload.admin_password,
+            master_password=payload.master_password,
             lang=payload.lang,
             country_code=payload.country_code,
             demo=payload.demo,
@@ -35,7 +36,7 @@ def provision(payload: TenantCreate) -> TenantResult:
         steps.append(Step(name="nginx_zone", ok=True, detail=f"Zona creada: {path}"))
     except nginx.NginxError as exc:
         steps.append(Step(name="nginx_zone", ok=False, detail=str(exc)))
-        _rollback_db(db_name, steps)
+        _rollback_db(db_name, payload.master_password, steps)
         return TenantResult(domain=payload.domain, db_name=db_name, steps=steps, ok=False)
 
     # --- 3. SSL (opcional, no bloqueante para el resto) ---
@@ -55,9 +56,9 @@ def provision(payload: TenantCreate) -> TenantResult:
     return TenantResult(domain=payload.domain, db_name=db_name, steps=steps, ok=ok)
 
 
-def _rollback_db(db_name: str, steps: list[Step]) -> None:
+def _rollback_db(db_name: str, master_password: str, steps: list[Step]) -> None:
     try:
-        odoo.drop_database(db_name)
+        odoo.drop_database(db_name, master_password)
         steps.append(Step(name="rollback_odoo_db", ok=True, detail=f"Base '{db_name}' eliminada"))
     except odoo.OdooError as exc:
         steps.append(Step(name="rollback_odoo_db", ok=False, detail=str(exc)))

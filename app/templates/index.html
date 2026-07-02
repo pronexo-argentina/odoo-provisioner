@@ -52,6 +52,10 @@
     {% endif %}
 
     <form id="provision-form" method="post" action="/provision">
+      <label>Master Password de Odoo</label>
+      <input type="password" name="master_password" placeholder="admin_passwd de odoo.conf" required autocomplete="off">
+      <small>Es la clave maestra de Odoo. Se pide en cada alta y no se guarda.</small>
+
       <label>Dominio del cliente</label>
       <input type="text" name="domain" placeholder="cliente1.{{ base_domain }}" required>
       <small>El primer label (ej. <b>cliente1</b>) será el nombre de la base salvo que lo cambies abajo.</small>

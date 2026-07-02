@@ -6,7 +6,6 @@ class Settings(BaseSettings):
 
     # Odoo
     odoo_url: str = "http://localhost:1969"
-    odoo_master_password: str = "cambiame"
     odoo_http_port: int = 1969
     odoo_longpolling_port: int = 8072
 

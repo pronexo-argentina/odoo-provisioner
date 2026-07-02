@@ -31,7 +31,7 @@ Se asume Ubuntu/Debian con Odoo 19, nginx y certbot ya instalados.
 ### 1. `odoo.conf`
 
 ```ini
-admin_passwd = <PONÉ_UN_MASTER_PASSWORD_FUERTE>   ; debe coincidir con ODOO_MASTER_PASSWORD
+admin_passwd = <PONÉ_UN_MASTER_PASSWORD_FUERTE>   ; la Master Password que vas a tipear en el form
 list_db = True                                     ; necesario para crear/listar bases por API
 dbfilter = ^%h$                                    ; cada dominio → su base (mismo nombre)
 proxy_mode = True                                  ; confiar en X-Forwarded-* de nginx
@@ -104,6 +104,7 @@ curl -X POST http://localhost:8090/api/tenants \
   -H "Content-Type: application/json" \
   -H "X-Auth-Token: $API_TOKEN" \
   -d '{
+        "master_password": "la-master-password-de-odoo",
         "domain": "cliente1.midominio.com",
         "admin_password": "unaClaveFuerte",
         "admin_email": "admin@midominio.com",
@@ -113,6 +114,9 @@ curl -X POST http://localhost:8090/api/tenants \
         "issue_ssl": true
       }'
 ```
+
+`master_password` es la Master Password de Odoo (`admin_passwd` de `odoo.conf`); no se
+guarda en el server, se manda en cada alta igual que en el gestor de bases de Odoo.
 
 Respuesta (`TenantResult`): lista de pasos (`odoo_db`, `nginx_zone`, `ssl`) con `ok` y detalle.
 Si algún paso obligatorio falla, se hace rollback de la base y responde `422`.

@@ -54,6 +54,7 @@ def api_create_tenant(payload: TenantCreate):
 @app.post("/provision", response_class=HTMLResponse)
 def form_provision(
     request: Request,
+    master_password: str = Form(...),
     domain: str = Form(...),
     db_name: str = Form(""),
     admin_login: str = Form("admin"),
@@ -66,6 +67,7 @@ def form_provision(
 ):
     try:
         payload = TenantCreate(
+            master_password=master_password,
             domain=domain,
             db_name=db_name or None,
             admin_login=admin_login,

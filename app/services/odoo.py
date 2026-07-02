@@ -36,12 +36,16 @@ def create_database(
     db_name: str,
     admin_login: str,
     admin_password: str,
+    master_password: str,
     lang: str = "es_AR",
     country_code: str = "ar",
     demo: bool = False,
     phone: str = "",
 ) -> None:
     """Crea una base de Odoo con su usuario admin.
+
+    `master_password` es la Master Password de Odoo (admin_passwd de odoo.conf); la
+    ingresa el operador en cada alta, igual que en el gestor de bases de Odoo.
 
     Firma de Odoo:
       create_database(master_pwd, db_name, demo, lang, user_password, login, country_code, phone)
@@ -57,7 +61,7 @@ def create_database(
 
     try:
         proxy.create_database(
-            settings.odoo_master_password,
+            master_password,
             db_name,
             demo,
             lang,
@@ -73,9 +77,9 @@ def create_database(
         raise OdooError(f"Falló la creación de la base en Odoo: {exc}")
 
 
-def drop_database(db_name: str) -> None:
+def drop_database(db_name: str, master_password: str) -> None:
     """Borra una base (usado para rollback si algo posterior falla)."""
     try:
-        _db_proxy().drop(settings.odoo_master_password, db_name)
+        _db_proxy().drop(master_password, db_name)
     except Exception as exc:
         raise OdooError(f"No se pudo borrar la base '{db_name}': {exc}")
