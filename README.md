@@ -32,20 +32,15 @@ Se asume Ubuntu/Debian con Odoo 19, nginx y certbot ya instalados.
 
 ```ini
 admin_passwd = <PONÉ_UN_MASTER_PASSWORD_FUERTE>   ; la Master Password que vas a tipear en el form
+list_db = True                                     ; necesario para crear/listar bases por API
 dbfilter = ^%h$                                    ; cada dominio → su base (mismo nombre)
 proxy_mode = True                                  ; confiar en X-Forwarded-* de nginx
-
-; Elegí UNA de estas dos según DB_BACKEND (ver .env):
-list_db = True     ; con DB_BACKEND=odoo     (gestor de Odoo habilitado)
-; list_db = False  ; con DB_BACKEND=postgres (gestor de Odoo deshabilitado; ver más abajo)
 ```
 
 Reiniciá Odoo tras editarlo: `sudo systemctl restart odoo`.
 
-> **Importante:** en Odoo 19, `list_db = False` no solo oculta el listado — **bloquea también
-> crear y borrar bases por XML-RPC**. Por eso, si querés `list_db = False`, tenés que usar
-> `DB_BACKEND=postgres` (ver la sección "Backend PostgreSQL"). Con `DB_BACKEND=odoo` dejá
-> `list_db = True`.
+> Seguridad: con `list_db = True` el gestor de bases queda expuesto. Bloqueá `/web/database/*`
+> en nginx para el público general si no lo querés accesible, y usá un `admin_passwd` fuerte.
 
 ### 2. Permisos sudo para la app
 
@@ -63,32 +58,6 @@ provisioner ALL=(root) NOPASSWD: /bin/rm -f /etc/nginx/sites-enabled/*
 ```
 
 Ajustá las rutas de los binarios a tu distro (`which nginx certbot tee ln rm`).
-
-### 2b. Backend PostgreSQL (sólo si `DB_BACKEND=postgres`)
-
-Este modo permite correr con `list_db = False` en `odoo.conf` (gestor de Odoo deshabilitado)
-y aun así listar/crear/borrar bases:
-
-- **Listar**: `psql` sobre `pg_database`, filtrando por el rol dueño (`ODOO_DB_USER`, típicamente `odoo`).
-- **Crear**: `app/odoo_helper.py` corre con el Python de Odoo (como el usuario `odoo`) y llama a
-  las funciones internas `_create_empty_database` + `_initialize_db` (no gateadas por `list_db`),
-  produciendo el mismo resultado que el creador de bases de Odoo.
-- **Borrar**: `dropdb --force`.
-
-En `.env`: `DB_BACKEND=postgres` y ajustá `ODOO_CONF`, `ODOO_PYTHON` (el python del venv de
-Odoo, ej. `/opt/odoo/venv/bin/python3`), `ODOO_SYSTEM_USER`, `ODOO_DB_USER`.
-
-Sudoers adicionales (agregá estas líneas al mismo `/etc/sudoers.d/odoo-provisioner`, ajustando
-`provisioner`, el path de `ODOO_PYTHON` y el path absoluto de `odoo_helper.py`):
-
-```
-provisioner ALL=(postgres) NOPASSWD: /usr/bin/psql -Atqc *
-provisioner ALL=(postgres) NOPASSWD: /usr/bin/dropdb --force --if-exists *
-provisioner ALL=(odoo) NOPASSWD: /opt/odoo/venv/bin/python3 /opt/odoo-provisioner/app/odoo_helper.py *
-```
-
-> Verificá los paths con `which psql dropdb` y `sudo -u odoo which python3` (o la ruta del venv).
-> Validá siempre con `sudo visudo -c`.
 
 ### 3. DNS
 

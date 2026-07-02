@@ -9,21 +9,6 @@ class Settings(BaseSettings):
     odoo_http_port: int = 1969
     odoo_longpolling_port: int = 8072
 
-    # Backend de gestión de bases:
-    #   "odoo"     -> vía XML-RPC (requiere list_db = True en odoo.conf)
-    #   "postgres" -> listar/crear/borrar sin pasar por el gestor de Odoo
-    #                 (funciona con list_db = False)
-    db_backend: str = "odoo"
-
-    # Sólo se usan con db_backend = "postgres":
-    odoo_conf: str = "/etc/odoo/odoo.conf"      # odoo.conf que usa el servicio Odoo
-    odoo_python: str = "python3"                # python con el paquete odoo importable
-    odoo_system_user: str = "odoo"              # usuario del SO que corre Odoo
-    odoo_db_user: str = "odoo"                  # rol dueño de las bases (filtro del listado)
-    postgres_system_user: str = "postgres"      # usuario del SO superusuario de PostgreSQL
-    psql_bin: str = "/usr/bin/psql"
-    dropdb_bin: str = "/usr/bin/dropdb"
-
     # Dominios / SSL
     base_domain: str = "midominio.com"
     letsencrypt_email: str = "admin@midominio.com"

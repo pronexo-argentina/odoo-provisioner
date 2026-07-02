@@ -82,9 +82,7 @@
          Esta acción no se puede deshacer.</p>
       <form id="delete-form" method="post" action="/delete">
         <input type="hidden" name="db_name" id="delete-db-name">
-        {% if not postgres_backend %}
         <input type="password" name="master_password" placeholder="Master Password de Odoo" required autocomplete="off">
-        {% endif %}
         <div class="modal-actions">
           <button type="button" class="cancel" id="modal-cancel">Cancelar</button>
           <button type="submit" class="confirm">Eliminar</button>
@@ -105,9 +103,9 @@
           var name = b.getAttribute('data-db');
           dbLabel.textContent = name;
           dbInput.value = name;
-          if (pwd) { pwd.value = ''; }
+          pwd.value = '';
           modal.classList.add('show');
-          if (pwd) { pwd.focus(); }
+          pwd.focus();
         });
       });
 
