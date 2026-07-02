@@ -24,8 +24,9 @@ def require_token(x_auth_token: str | None = Header(default=None)) -> None:
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse(
+        request,
         "index.html",
-        {"request": request, "base_domain": settings.base_domain, "dry_run": not settings.apply_system_changes},
+        {"base_domain": settings.base_domain, "dry_run": not settings.apply_system_changes},
     )
 
 
@@ -77,15 +78,17 @@ def form_provision(
         )
     except ValueError as exc:
         return templates.TemplateResponse(
+            request,
             "index.html",
-            {"request": request, "base_domain": settings.base_domain,
+            {"base_domain": settings.base_domain,
              "dry_run": not settings.apply_system_changes, "error": str(exc)},
             status_code=422,
         )
 
     result = provision(payload)
     return templates.TemplateResponse(
+        request,
         "result.html",
-        {"request": request, "result": result},
+        {"result": result},
         status_code=200 if result.ok else 422,
     )
