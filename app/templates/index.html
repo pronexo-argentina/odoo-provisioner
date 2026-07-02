@@ -23,6 +23,16 @@
     .check input { width:auto; }
     button { margin-top:20px; width:100%; padding:12px; border:0; border-radius:8px;
       background:var(--accent); color:#fff; font-size:1rem; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    /* Overlay de carga */
+    #overlay { position:fixed; inset:0; background:rgba(15,23,42,.85);
+      display:none; align-items:center; justify-content:center; flex-direction:column; z-index:50; }
+    #overlay.show { display:flex; }
+    .spinner { width:52px; height:52px; border:5px solid #334155;
+      border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #overlay p { color:var(--fg); margin-top:18px; font-size:.95rem; }
+    #overlay small { color:var(--muted); margin-top:4px; }
     .banner { padding:10px 14px; border-radius:8px; margin-top:16px; font-size:.85rem; }
     .banner.dry { background:#78350f; color:#fde68a; }
     .banner.err { background:#7f1d1d; color:#fecaca; }
@@ -41,7 +51,7 @@
     <div class="banner err">{{ error }}</div>
     {% endif %}
 
-    <form method="post" action="/provision">
+    <form id="provision-form" method="post" action="/provision">
       <label>Dominio del cliente</label>
       <input type="text" name="domain" placeholder="cliente1.{{ base_domain }}" required>
       <small>El primer label (ej. <b>cliente1</b>) será el nombre de la base salvo que lo cambies abajo.</small>
@@ -89,8 +99,14 @@
         <label for="ssl" style="margin:0;">Emitir SSL con certbot (el DNS debe apuntar al server)</label>
       </div>
 
-      <button type="submit">Crear cliente</button>
+      <button type="submit" id="submit-btn">Crear cliente</button>
     </form>
+  </div>
+
+  <div id="overlay">
+    <div class="spinner"></div>
+    <p>Creando cliente…</p>
+    <small>Base, zona nginx y SSL. Puede tardar un minuto (certbot).</small>
   </div>
 
   <script>
@@ -103,6 +119,27 @@
         if (!db.value.trim()) {
           db.value = dom.value.trim().toLowerCase();
         }
+      });
+    })();
+
+    // Al enviar: bloquear el botón y mostrar el preloader. El navegador navega
+    // a la página de resultado cuando el server responde.
+    (function () {
+      var form = document.getElementById('provision-form');
+      var btn = document.getElementById('submit-btn');
+      var overlay = document.getElementById('overlay');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        // Sólo se dispara si pasó la validación HTML5 del formulario.
+        btn.disabled = true;
+        btn.textContent = 'Creando…';
+        overlay.classList.add('show');
+      });
+      // Si el usuario vuelve atrás (bfcache), restaurar el estado normal.
+      window.addEventListener('pageshow', function () {
+        btn.disabled = false;
+        btn.textContent = 'Crear cliente';
+        overlay.classList.remove('show');
       });
     })();
   </script>
