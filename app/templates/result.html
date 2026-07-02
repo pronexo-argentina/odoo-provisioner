@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resultado — Odoo Provisioner</title>
+  <style>
+    body { margin:0; font-family: system-ui, sans-serif; background:#0f172a; color:#e2e8f0; }
+    .wrap { max-width: 560px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size:1.3rem; }
+    .card { background:#1e293b; border-radius:12px; padding:20px; margin-top:16px; }
+    .step { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #334155; }
+    .step:last-child { border-bottom:0; }
+    .ico { font-weight:700; }
+    .ok { color:#22c55e; }
+    .bad { color:#ef4444; }
+    .name { font-weight:600; min-width:120px; }
+    .detail { color:#94a3b8; font-size:.9rem; }
+    .status { padding:8px 14px; border-radius:8px; display:inline-block; font-weight:600; }
+    .status.ok { background:#14532d; color:#bbf7d0; }
+    .status.bad { background:#7f1d1d; color:#fecaca; }
+    a { color:#a78bfa; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>{{ result.domain }} · base <code>{{ result.db_name }}</code></h1>
+    <span class="status {{ 'ok' if result.ok else 'bad' }}">
+      {{ 'Alta completada' if result.ok else 'Alta con errores' }}
+    </span>
+
+    <div class="card">
+      {% for step in result.steps %}
+      <div class="step">
+        <span class="ico {{ 'ok' if step.ok else 'bad' }}">{{ '✔' if step.ok else '✗' }}</span>
+        <span class="name">{{ step.name }}</span>
+        <span class="detail">{{ step.detail }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if result.ok %}
+    <p>Accedé en <a href="https://{{ result.domain }}">https://{{ result.domain }}</a></p>
+    {% endif %}
+    <p><a href="/">← Crear otro</a></p>
+  </div>
+</body>
+</html>
