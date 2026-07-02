@@ -24,9 +24,14 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>{{ result.domain }} · base <code>{{ result.db_name }}</code></h1>
+    <h1>base <code>{{ result.db_name }}</code></h1>
+    {% set is_delete = action == 'delete' %}
     <span class="status {{ 'ok' if result.ok else 'bad' }}">
-      {{ 'Alta completada' if result.ok else 'Alta con errores' }}
+      {% if is_delete %}
+        {{ 'Base eliminada' if result.ok else 'Baja con errores' }}
+      {% else %}
+        {{ 'Alta completada' if result.ok else 'Alta con errores' }}
+      {% endif %}
     </span>
 
     <div class="card">
@@ -39,10 +44,10 @@
       {% endfor %}
     </div>
 
-    {% if result.ok %}
+    {% if result.ok and not is_delete %}
     <p>Accedé en <a href="https://{{ result.domain }}">https://{{ result.domain }}</a></p>
     {% endif %}
-    <p><a href="/">← Crear otro</a></p>
+    <p><a href="/">← Volver a las bases</a></p>
   </div>
 </body>
 </html>

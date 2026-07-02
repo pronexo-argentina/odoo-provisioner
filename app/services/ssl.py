@@ -41,3 +41,26 @@ def issue_certificate(domain: str, email: str | None = None) -> str:
         # Causa típica: el DNS del dominio todavía no apunta a este server.
         raise SslError(f"certbot falló: {(result.stderr or result.stdout).strip()}")
     return result.stdout.strip()
+
+
+def delete_certificate(domain: str) -> str:
+    """Elimina el certificado del dominio (certbot delete). No falla si no existe."""
+    domain = domain.strip().lower()
+    if not DOMAIN_RE.match(domain):
+        raise SslError(f"Dominio inválido: {domain}")
+
+    if not settings.apply_system_changes:
+        return f"[dry-run] certbot delete --cert-name {domain}"
+
+    cmd = ["sudo", settings.certbot_bin, "delete", "--cert-name", domain, "--non-interactive"]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        raise SslError("certbot no está instalado en este servidor")
+    if result.returncode != 0:
+        out = (result.stderr or result.stdout).lower()
+        # Si no hay certificado para ese dominio, no es un error: no había nada que borrar.
+        if "no certificate" in out or "not found" in out:
+            return "Sin certificado que eliminar"
+        raise SslError(f"certbot delete falló: {(result.stderr or result.stdout).strip()}")
+    return "Certificado eliminado"

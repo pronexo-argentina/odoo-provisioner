@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from app.config import settings
 from app.schemas import TenantCreate, TenantResult
 from app.services import odoo
-from app.services.provisioner import provision
+from app.services.provisioner import deprovision, provision
 
 app = FastAPI(title="Odoo Provisioner", version="0.1.0")
 
@@ -22,10 +22,25 @@ def require_token(x_auth_token: str | None = Header(default=None)) -> None:
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request):
+def index(request: Request, msg: str | None = None):
+    databases, error = [], None
+    try:
+        databases = odoo.list_databases()
+    except odoo.OdooError as exc:
+        error = str(exc)
     return templates.TemplateResponse(
         request,
         "index.html",
+        {"databases": databases, "error": error, "msg": msg,
+         "dry_run": not settings.apply_system_changes},
+    )
+
+
+@app.get("/new", response_class=HTMLResponse)
+def new_form(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "new.html",
         {"base_domain": settings.base_domain, "dry_run": not settings.apply_system_changes},
     )
 
@@ -81,7 +96,7 @@ def form_provision(
     except ValueError as exc:
         return templates.TemplateResponse(
             request,
-            "index.html",
+            "new.html",
             {"base_domain": settings.base_domain,
              "dry_run": not settings.apply_system_changes, "error": str(exc)},
             status_code=422,
@@ -94,3 +109,26 @@ def form_provision(
         {"result": result},
         status_code=200 if result.ok else 422,
     )
+
+
+@app.post("/delete", response_class=HTMLResponse)
+def form_delete(
+    request: Request,
+    db_name: str = Form(...),
+    master_password: str = Form(...),
+):
+    result = deprovision(db_name, master_password)
+    return templates.TemplateResponse(
+        request,
+        "result.html",
+        {"result": result, "action": "delete"},
+        status_code=200 if result.ok else 422,
+    )
+
+
+@app.delete("/api/tenants/{db_name}", response_model=TenantResult, dependencies=[Depends(require_token)])
+def api_delete_tenant(db_name: str, x_master_password: str = Header(...)):
+    result = deprovision(db_name, x_master_password)
+    if not result.ok:
+        return JSONResponse(status_code=422, content=result.model_dump())
+    return result

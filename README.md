@@ -85,7 +85,10 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8090
 ```
 
-Abrí `http://<server>:8090/` para el formulario.
+Abrí `http://<server>:8090/`. La pantalla principal es un **dashboard** con las bases de
+Odoo existentes y un botón por base para **eliminarla** (pide la Master Password y, si el
+nombre de la base es un dominio, borra también su zona de nginx y su certificado SSL). El
+botón **Create Database** lleva al formulario de alta.
 
 En producción, dejalo detrás de un `systemd` + su propia zona nginx con SSL, y protegé el
 acceso (VPN, auth básica o `API_TOKEN`).
@@ -120,6 +123,14 @@ guarda en el server, se manda en cada alta igual que en el gestor de bases de Od
 
 Respuesta (`TenantResult`): lista de pasos (`odoo_db`, `nginx_zone`, `ssl`) con `ok` y detalle.
 Si algún paso obligatorio falla, se hace rollback de la base y responde `422`.
+
+Eliminar cliente (borra la base y, si el nombre es un dominio, su zona de nginx y su cert SSL):
+
+```bash
+curl -X DELETE http://localhost:8090/api/tenants/www.pepep.com \
+  -H "X-Auth-Token: $API_TOKEN" \
+  -H "X-Master-Password: la-master-password-de-odoo"
+```
 
 Listar bases: `GET /api/databases`
 Healthcheck: `GET /health`
