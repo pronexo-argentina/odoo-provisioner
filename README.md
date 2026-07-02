@@ -142,3 +142,7 @@ app/
   el sitio queda por HTTP (no se revierte) porque suele ser un DNS que aún no propagó.
 - **Sin CDNs:** el HTML usa CSS inline, sin dependencias externas.
 - **Idempotencia:** crear una base o zona ya existente devuelve error claro, no pisa lo que hay.
+
+## Licencia
+
+MIT — ver [LICENSE](LICENSE).
